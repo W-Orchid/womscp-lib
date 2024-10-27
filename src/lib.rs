@@ -5,6 +5,8 @@ pub mod womscp {
 
     const WOMSCP_REQ_LEN :usize = 10;
 
+
+    #[derive(Debug)]
     pub enum RequestFlags {
         SrvrRdy    = 1,
         Dummy      = 1 >> 1
@@ -45,5 +47,20 @@ pub mod womscp {
 
             return Ok(Self::from(buf));
         }
+    }
+
+
+    #[derive(Debug)]
+    pub enum ResponseError {
+        NotReady = 1,
+        Version,
+        Unrecognised,
+        Database
+    }
+
+    #[derive(Debug)]
+    pub struct Response {
+        pub version :u8,
+        pub response :Result<(), ResponseError>
     }
 }
