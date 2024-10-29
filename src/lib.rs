@@ -44,10 +44,10 @@ pub mod womscp {
         }
     }
 
-    impl TryFrom<TcpStream> for Request {
+    impl TryFrom<&TcpStream> for Request {
         type Error = ResponseError;
 
-        fn try_from(mut stream: TcpStream) -> Result<Self, Self::Error> {
+        fn try_from(mut stream: &TcpStream) -> Result<Self, Self::Error> {
             let mut buf :[u8; WOMSCP_REQ_LEN] = [0; WOMSCP_REQ_LEN];
 
             if let Err(e) = stream.read(&mut buf) {
