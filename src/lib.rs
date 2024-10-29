@@ -4,8 +4,8 @@ pub mod womscp {
 
 
     pub const WOMSCP_VERSION :u8 = 1;
-
-    const WOMSCP_REQ_LEN :usize = 10;
+    pub const WOMSCP_REQ_LEN :usize = 10;
+    pub const WOMSCP_RES_LEN :usize = 2;
 
 
     #[derive(Debug)]
@@ -67,7 +67,7 @@ pub mod womscp {
     }
 
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     pub enum ResponseError {
         NotReady = 1,
         Version,
@@ -76,10 +76,40 @@ pub mod womscp {
         Database
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     pub struct Response {
         pub version :u8,
         pub response :Result<(), ResponseError>
+    }
+
+    impl Response {
+        pub fn new(res :Result<(), ResponseError>) -> Self {
+            Response {
+                version: WOMSCP_VERSION,
+                response: res
+            }
+        }
+    }
+
+    impl Into<[u8; WOMSCP_RES_LEN]> for Response {
+        fn into(self) -> [u8; WOMSCP_RES_LEN] {
+            let mut buf = [0; WOMSCP_RES_LEN];
+
+            buf[0] = self.version;
+            buf[1] = if self.response.is_ok() {
+                0
+            } else {
+                match self.response.unwrap_err() {
+                    ResponseError::NotReady     => 1,
+                    ResponseError::Version      => 2,
+                    ResponseError::Unrecognised => 3,
+                    ResponseError::Tcp          => 4,
+                    ResponseError::Database     => 5
+                }
+            };
+
+            buf
+        }
     }
 }
 
