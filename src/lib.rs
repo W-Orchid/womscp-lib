@@ -14,12 +14,12 @@ pub mod womscp {
         Dummy      = 1 >> 1
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     pub struct Request {
         pub version: u8,
         pub m_id: u16,
         pub s_id: u8,
-        pub t: u8,
+        pub sensor_type: u8,
         pub data: u32,
         pub flags: u8
     }
@@ -32,7 +32,7 @@ pub mod womscp {
                 version: buf[0], 
                 m_id: u16::from_be_bytes([buf[1], buf[2]]),
                 s_id: buf[3], 
-                t: buf[4], 
+                sensor_type: buf[4], 
                 data: u32::from_be_bytes([buf[5], buf[6], buf[7], buf[8]]),
                 flags: buf[9]
             };
@@ -80,5 +80,27 @@ pub mod womscp {
     pub struct Response {
         pub version :u8,
         pub response :Result<(), ResponseError>
+    }
+}
+
+#[cfg(test)] 
+mod tests {
+    use crate::womscp::Request;
+
+    #[test]
+    fn parse_request() {
+        let buf = [1, 0, 0x0d, 5, 3, 0, 0, 0, 0x7b, 0];
+        let correct_res = Request {
+            version: 1,
+            m_id: 0x0d,
+            s_id: 5,
+            sensor_type: 3,
+            data: 0x7b,
+            flags: 0
+        };
+
+        let res :Request = Request::try_from(buf).expect("Couldn't parse byte string!");
+
+        assert_eq!(res, correct_res);
     }
 }
