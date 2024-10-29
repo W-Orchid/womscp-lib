@@ -1,7 +1,5 @@
 pub mod womscp {
-    use std::net::TcpStream;
-    use std::io::Read;
-
+    use tokio::net::TcpStream;
 
     pub const WOMSCP_VERSION :u8 = 1;
     pub const WOMSCP_REQ_LEN :usize = 10;
@@ -47,12 +45,18 @@ pub mod womscp {
     impl TryFrom<&TcpStream> for Request {
         type Error = ResponseError;
 
-        fn try_from(mut stream: &TcpStream) -> Result<Self, Self::Error> {
+        fn try_from(stream: &TcpStream) -> Result<Self, Self::Error> {
             let mut buf :[u8; WOMSCP_REQ_LEN] = [0; WOMSCP_REQ_LEN];
 
-            if let Err(e) = stream.read(&mut buf) {
-                eprintln!("{:?}", e);
-                return Err(ResponseError::Tcp);
+            let mut bytes_read :usize = 0;
+            while bytes_read < WOMSCP_REQ_LEN {
+                match stream.try_read(&mut buf) {
+                    Ok(n) => bytes_read += n,
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        return Err(ResponseError::Tcp);
+                    }
+                }
             }
 
             let req =  Self::try_from(buf)?;
