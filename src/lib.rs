@@ -14,12 +14,12 @@ pub mod womscp {
         Dummy      = 1 >> 1
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     pub struct Request {
         pub version: u8,
         pub m_id: u16,
         pub s_id: u8,
-        pub t: u8,
+        pub sensor_type: u8,
         pub data: u32,
         pub flags: u8
     }
@@ -32,7 +32,7 @@ pub mod womscp {
                 version: buf[0], 
                 m_id: u16::from_be_bytes([buf[1], buf[2]]),
                 s_id: buf[3], 
-                t: buf[4], 
+                sensor_type: buf[4], 
                 data: u32::from_be_bytes([buf[5], buf[6], buf[7], buf[8]]),
                 flags: buf[9]
             };
@@ -82,3 +82,6 @@ pub mod womscp {
         pub response :Result<(), ResponseError>
     }
 }
+
+
+mod tests;
