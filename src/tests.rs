@@ -44,7 +44,7 @@ fn wrong_version() {
         Ok(_) => panic!("Wrong version not detected!"),
         Err(e) => {
             match e {
-                Response::Version => {},
+                ResponseError::Version => {},
                 _ => panic!("Wrong version not detected! Some other error occured!")
             }
         }

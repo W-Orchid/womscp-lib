@@ -24,7 +24,7 @@ pub mod womscp {
     }
 
     impl TryFrom<[u8; WOMSCP_REQ_LEN]> for Request {
-        type Error = Response;
+        type Error = ResponseError;
 
         fn try_from(buf: [u8; WOMSCP_REQ_LEN]) -> Result<Self, Self::Error> {
             let req = Request { 
@@ -37,7 +37,7 @@ pub mod womscp {
             };
 
             if req.version != WOMSCP_VERSION {
-                return Err(Response::Version);
+                return Err(ResponseError::Version);
             }
 
             Ok(req)
@@ -45,20 +45,20 @@ pub mod womscp {
     }
 
     impl TryFrom<TcpStream> for Request {
-        type Error = Response;
+        type Error = ResponseError;
 
         fn try_from(mut stream: TcpStream) -> Result<Self, Self::Error> {
             let mut buf :[u8; WOMSCP_REQ_LEN] = [0; WOMSCP_REQ_LEN];
 
             if let Err(e) = stream.read(&mut buf) {
                 eprintln!("{:?}", e);
-                return Err(Response::Tcp);
+                return Err(ResponseError::Tcp);
             }
 
             let req =  Self::try_from(buf)?;
 
             if req.version != WOMSCP_VERSION {
-                return Err(Response::Version);
+                return Err(ResponseError::Version);
             }
 
             return Ok(req);
@@ -67,7 +67,7 @@ pub mod womscp {
 
 
     impl TryInto<[u8; WOMSCP_REQ_LEN]> for Request {
-        type Error = Response;
+        type Error = ResponseError;
 
         fn try_into(self) -> Result<[u8; WOMSCP_REQ_LEN], Self::Error> {
             let mut buf :[u8; WOMSCP_REQ_LEN] = [0; WOMSCP_REQ_LEN];
@@ -76,7 +76,7 @@ pub mod womscp {
             let data_bytes = self.data.to_be_bytes();
 
             if self.version != WOMSCP_VERSION {
-                return Err(Response::Version);
+                return Err(ResponseError::Version);
             }
 
             buf[0] = self.version;
@@ -96,14 +96,13 @@ pub mod womscp {
 
 
     #[derive(Debug, PartialEq)]
-    pub enum Response {
+    pub enum ResponseError {
         NotReady = 1,
         Version,
         Unrecognised,
         Tcp,
         Database
     }
-
 }
 
 
