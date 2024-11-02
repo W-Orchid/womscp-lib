@@ -1,5 +1,6 @@
 pub mod womscp {
     use tokio::net::TcpStream;
+    use tokio::io::AsyncReadExt;
 
     pub const WOMSCP_VERSION :u8 = 1;
     pub const WOMSCP_REQ_LEN :usize = 10;
@@ -19,6 +20,31 @@ pub mod womscp {
         pub sensor_type: u8,
         pub data: u32,
         pub flags: u8
+    }
+
+    impl Request {
+        pub async fn try_from_tcp(stream: &mut TcpStream) -> Result<Self, ResponseError>  {
+            let mut buf :[u8; WOMSCP_REQ_LEN] = [0; WOMSCP_REQ_LEN];
+
+            let mut bytes_read :usize = 0;
+            while bytes_read < WOMSCP_REQ_LEN {
+                match stream.read(&mut buf).await {
+                    Ok(n) => bytes_read += n,
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        return Err(ResponseError::Tcp);
+                    }
+                }
+            }
+
+            let req =  Self::try_from(buf)?;
+
+            if req.version != WOMSCP_VERSION {
+                return Err(ResponseError::Version);
+            }
+
+            return Ok(req);
+        }
     }
 
     impl TryFrom<[u8; WOMSCP_REQ_LEN]> for Request {
@@ -41,34 +67,6 @@ pub mod womscp {
             Ok(req)
         }
     }
-
-    impl TryFrom<&TcpStream> for Request {
-        type Error = ResponseError;
-
-        fn try_from(stream: &TcpStream) -> Result<Self, Self::Error> {
-            let mut buf :[u8; WOMSCP_REQ_LEN] = [0; WOMSCP_REQ_LEN];
-
-            let mut bytes_read :usize = 0;
-            while bytes_read < WOMSCP_REQ_LEN {
-                match stream.try_read(&mut buf) {
-                    Ok(n) => bytes_read += n,
-                    Err(e) => {
-                        eprintln!("{:?}", e);
-                        return Err(ResponseError::Tcp);
-                    }
-                }
-            }
-
-            let req =  Self::try_from(buf)?;
-
-            if req.version != WOMSCP_VERSION {
-                return Err(ResponseError::Version);
-            }
-
-            return Ok(req);
-        }
-    }
-
 
     impl TryInto<[u8; WOMSCP_REQ_LEN]> for Request {
         type Error = ResponseError;
