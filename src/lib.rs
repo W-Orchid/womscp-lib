@@ -9,7 +9,7 @@ pub mod womscp {
     #[derive(Debug)]
     pub enum RequestFlags {
         SrvrRdy    = 1,
-        Dummy      = 1 >> 1
+        Dummy      = 1 << 1
     }
 
     #[derive(Debug, PartialEq)]
