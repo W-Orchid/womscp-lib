@@ -37,7 +37,7 @@ pub mod womscp {
                 }
             }
 
-            let req =  Self::try_from(buf)?;
+            let req =  Self::try_from(&buf)?;
 
             if req.version != WOMSCP_VERSION {
                 return Err(ResponseError::Version);
@@ -47,10 +47,10 @@ pub mod womscp {
         }
     }
 
-    impl TryFrom<[u8; WOMSCP_REQ_LEN]> for Request {
+    impl TryFrom<&[u8; WOMSCP_REQ_LEN]> for Request {
         type Error = ResponseError;
 
-        fn try_from(buf: [u8; WOMSCP_REQ_LEN]) -> Result<Self, Self::Error> {
+        fn try_from(buf: &[u8; WOMSCP_REQ_LEN]) -> Result<Self, Self::Error> {
             let req = Request { 
                 version: buf[0], 
                 m_id: u16::from_be_bytes([buf[1], buf[2]]),
@@ -68,7 +68,7 @@ pub mod womscp {
         }
     }
 
-    impl TryInto<[u8; WOMSCP_REQ_LEN]> for Request {
+    impl TryInto<[u8; WOMSCP_REQ_LEN]> for &Request {
         type Error = ResponseError;
 
         fn try_into(self) -> Result<[u8; WOMSCP_REQ_LEN], Self::Error> {
