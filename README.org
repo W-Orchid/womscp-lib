@@ -9,9 +9,90 @@
 
 
 * W.Orchid Microcontroller-Server Protocol
-This shell was inspired by [[https://github.com/ajeetdsouza/zoxide][zoxide]] in that it auto-corrects the user input to help speedup the development process. In our case the user input are the shell commands.
+The goal was to design a lightweight communication protocol so that the server can receive data from the microcontrollers (and their associated sensors). The protocol should handle test cases such as dummy data (for testing purposes) and checking if the server is ready.
 
-Our shell works by building a history of the user's successfully-executed commands as well as timestamps on when the command was executed. Then, when the user mistypes a command similar to what we have in the history, we recommend the history entry with the highest score. The score is based on how frequently the history entry has been called in a given time frame and on how recently the entry had last been called.
+* Idea
+WOMSCP works on top of TCP. Since the communication prioritizes data integrity over data transmission rates TCP was chosen over UDP. 
+
+Each sensor will have a unique ID (1 byte) within the domain of a microcontroller. All the microcontrollers will each have a global ID of 2 bytes.  That way the receiver can tell which sensor the data is coming from. A single byte is reserved for the type of the sensor.
+
+* Specification
+** Request
+A WOMSCPv1 request data packet will be 10 bytes long.
+
+- 1 byte for versioning (since v1, we leave this as v=0x01)
+- 2 bytes for microcontrollerID (mID)
+- 1 byte for sensor ID (sID)
+- 1 byte for sensor type (t)
+- 4 bytes for sensor data
+- 1 byte for flags (f), for more details see Minutiae
+  - SRVR_RDY = 1     
+  - DUMMY    = 1 >> 1
+
+
+#+begin_src ascii
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| v | mID |sID| t |    data       | f |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  1    2    1   1        4          1
+#+end_src
+
+*** Example
+Sensor with sID=0x05 on microcontroller mID=0x000d sends data=123=0x0000007b. The sensor has type t=0x03. The request is a normal request, so no flags are set.
+
+The WOMSCPv1 request data packet will look like this:
+0x 01 000d 05 03 0000007b 00
+
+
+*** Limitations of WOMSCPv1 Request
+- Maximum concurrent microcontrollers           = 2^16
+- Maximum sensors per microcontroller           = 2^8  - 1 (see Minutiae)
+- Maximum sensor types supported                = 2^8
+- Maximum value that data can be                = 2^32
+- Maximum flags supported                       = 4
+
+
+*** Minutiae
+- SRVR_RDY flag signals a special kind of request, asking if server is ready to handle requests
+- DUMMY flag signals that the data is for debugging purposes only
+
+
+** Response
+A WOMSCPv1 response data packet will be 2 bytes long.
+
+- 1 byte for versioning (since v1, we leave this as v=0x01)
+- 1 byte for response (r), for more details see Minutiae
+  - SRVR_OK        = 0
+  - SRVR_NOT_RDY   = 1
+  - SRVR_VERSION   = 2
+  - SRVR_UNREC     = 3
+  - SRVR_TCP       = 4
+  - SRVR_DB_ERR    = 5
+
+
+#+begin_src ascii
++-+-+-+-+
+| v | r |
++-+-+-+-+
+  1   1
+#+end_src
+
+*** Example
+Consider the response to the request from the previous example to be positive/
+
+The WOMSCPv1 response data packet will look like this:
+0x 01 01
+
+*** Limitations of WOMSCPv1 Response
+Maximum responses supported          = 2^8
+
+*** Minutiae
+- SRVR_OK signals that the server finished processing the request successfully
+- SRVR_NOT_RDY signals that the server is not ready to handle incoming requests
+- SRVR_VERSION signals that there is a version mismatch between the server’s and microcontroller’s implementation of the WOMSCP
+- SRVR_UNREC signals that the identification of the microcontroller and/or sensor does not match the entry in the server’s database
+- SRVR_TCP signals a problem with the TCP connection
+- SERVER_DB signals that there was an error writing the data to the database
 
 * Build
 #+begin_src shell
@@ -25,3 +106,7 @@ Our shell works by building a history of the user's successfully-executed comman
 
 * Unit Tests
 The unit tests can be found in =src/tests= directory.
+
+* Implementations
+- [[https://github.com/W-Orchid/womscp-server][WOMSCP Server]]
+- [[https://github.com/W-Orchid/womscp-benchmark][WOMSCP Server Benchmark]]
