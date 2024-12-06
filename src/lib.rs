@@ -29,6 +29,7 @@ pub mod womscp {
             let mut bytes_read :usize = 0;
             while bytes_read < WOMSCP_REQ_LEN {
                 match stream.read(&mut buf).await {
+                    Ok(0) => break,
                     Ok(n) => bytes_read += n,
                     Err(e) => {
                         eprintln!("{:?}", e);
