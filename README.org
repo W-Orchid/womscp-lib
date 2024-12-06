@@ -105,7 +105,7 @@ Maximum responses supported          = 2^8
 #+end_src
 
 * Unit Tests
-The unit tests can be found in =src/tests= directory.
+The unit tests can be found in =src/tests.rs=.
 
 * Implementations
 - [[https://github.com/W-Orchid/womscp-server][WOMSCP Server]]
