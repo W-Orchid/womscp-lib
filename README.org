@@ -1,0 +1,26 @@
+#+title: WOMSCP
+
+#+begin_html
+<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/w-Orchid/womscp-lib/rust.yml">
+
+<img alt="License" src="https://img.shields.io/github/license/w-Orchid/womscp-lib?style=for-the-badge" />
+#+end_html
+
+
+* W.Orchid Microcontroller-Server Protocol
+This shell was inspired by [[https://github.com/ajeetdsouza/zoxide][zoxide]] in that it auto-corrects the user input to help speedup the development process. In our case the user input are the shell commands.
+
+Our shell works by building a history of the user's successfully-executed commands as well as timestamps on when the command was executed. Then, when the user mistypes a command similar to what we have in the history, we recommend the history entry with the highest score. The score is based on how frequently the history entry has been called in a given time frame and on how recently the entry had last been called.
+
+* Build
+#+begin_src shell
+  cargo build --release
+#+end_src
+
+** Run Tests
+#+begin_src shell
+  cargo test
+#+end_src
+
+* Unit Tests
+The unit tests can be found in =src/tests= directory.
