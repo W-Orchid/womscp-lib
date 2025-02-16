@@ -100,7 +100,8 @@ pub mod womscp {
 
     #[derive(Debug, PartialEq)]
     pub enum ResponseError {
-        NotReady = 1,
+        None = 0,
+        NotReady,
         Version,
         Unrecognised,
         Tcp,
